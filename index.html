@@ -17,19 +17,20 @@
   padding-bottom:env(safe-area-inset-bottom,0px);
 }
 *,*::before,*::after{box-sizing:inherit}
-body{margin:0;font-family:system-ui,sans-serif;font-size:14px;background:#F5F5F5;color:#2a2a28;min-height:100vh}
+body{margin:0;font-family:system-ui,sans-serif;font-size:14px;background:#F5F5F5;color:#2a2a28;min-height:100vh;display:flex;flex-direction:column}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 
-header{background:#2D3748;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:10px}
+header{background:#2D3748;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 header h1{font-size:15px;font-weight:600;margin:0}
-header span{font-size:11px;opacity:.7;margin-left:auto}
+header .header-info{margin-left:auto;text-align:right;font-size:11px;opacity:.85}
+header .header-authors{font-size:10px;opacity:.7}
 
 .tabs{display:flex;background:#fff;border-bottom:1px solid var(--border);overflow-x:auto}
 .tab{padding:10px 15px;cursor:pointer;font-size:13px;color:var(--gray);border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;flex-shrink:0}
 .tab.active{color:#2D3748;border-bottom-color:#4A5568;font-weight:500}
 .tab:hover:not(.active){background:var(--lgray)}
 
-.panel{display:none;padding:14px 16px;max-width:900px;margin:0 auto}
+.panel{display:none;padding:14px 16px;max-width:900px;margin:0 auto;width:100%}
 .panel.active{display:block}
 
 .card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px}
@@ -94,6 +95,19 @@ tr:hover td{background:#EDF2F7}
 .ipv6-bit.net{background:#553C9A;color:#fff}
 .ipv6-bit.host{background:var(--lgray);color:var(--gray);border:1px solid var(--border)}
 .ipv6-bit.sep{background:transparent;width:3px}
+
+footer {
+  margin-top: auto;
+  background: #fff;
+  border-top: 1px solid var(--border);
+  padding: 12px 20px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--gray);
+}
+footer strong {
+  color: var(--navy);
+}
 </style>
 </head>
 <body>
@@ -101,7 +115,10 @@ tr:hover td{background:#EDF2F7}
 <header>
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M2 10h20"/></svg>
   <h1>Calculadora de Subredes IP</h1>
-  <span>Teleinformática III — UNSTA</span>
+  <div class="header-info">
+    <div>Teleinformática III — UNSTA</div>
+    <div class="header-authors">Por: Amparo Ruiz, Candelaria Lopez Avila, Luz Maria Ponce de Leon</div>
+  </div>
 </header>
 
 <div class="tabs">
@@ -271,6 +288,10 @@ tr:hover td{background:#EDF2F7}
   </div>
 </div>
 
+<footer>
+  Desarrollado por <strong>Amparo Ruiz</strong>, <strong>Candelaria Lopez Avila</strong> y <strong>Luz Maria Ponce de Leon</strong> — Teleinformática III (UNSTA)
+</footer>
+
 <script>
 // ══════════════════════════════════════════════════════════════
 // IPv4 UTILITIES
@@ -310,20 +331,18 @@ function copyVal(el,val){navigator.clipboard?.writeText(val).catch(()=>{});const
 // IPv6 UTILITIES
 // ══════════════════════════════════════════════════════════════
 function expandIPv6(addr){
-  if(addr.includes('::')){{
+  if(addr.includes('::')){
     const sides=addr.split('::');
     const left=sides[0]?sides[0].split(':'):[];
     const right=sides[1]?sides[1].split(':'):[];
     const missing=8-left.length-right.length;
     const mid=Array(missing).fill('0000');
     return[...left,...mid,...right].map(g=>g.padStart(4,'0')).join(':');
-  }}
+  }
   return addr.split(':').map(g=>g.padStart(4,'0')).join(':');
 }
 function compressIPv6(expanded){
-  // remove leading zeros in each group
   let addr=expanded.split(':').map(g=>parseInt(g,16).toString(16)).join(':');
-  // find longest run of :0:
   let best='',bestLen=0,cur='',curLen=0;
   const groups=addr.split(':');
   let runStart=-1,bestStart=-1;
@@ -343,7 +362,6 @@ function compressIPv6(expanded){
 function parseIPv6Input(str){
   str=str.trim();let prefix=null;
   if(str.includes('/')){const p=str.split('/');str=p[0];prefix=parseInt(p[1]);}
-  // validate
   const expanded=expandIPv6(str);
   const groups=expanded.split(':');
   if(groups.length!==8||groups.some(g=>!/^[0-9a-fA-F]{4}$/.test(g)))return null;
@@ -668,7 +686,7 @@ function pdfFooter(doc){
     doc.setPage(i);
     doc.setFillColor(241,239,232);doc.rect(0,285,210,12,'F');
     doc.setTextColor(95,94,90);doc.setFontSize(8);doc.setFont('helvetica','normal');
-    doc.text('Generado con Calculadora de Subredes IP — Teleinformática II',10,292);
+    doc.text('Creadoras: Amparo Ruiz, Candelaria Lopez Avila, Luz Maria Ponce de Leon',10,292);
     doc.text(`Página ${i} / ${pages}`,200,292,'right');
   }
 }
@@ -694,7 +712,6 @@ function exportIPv4PDF(){
     bodyStyles:{fontSize:9},alternateRowStyles:{fillColor:[241,239,232]},
     columnStyles:{0:{fontStyle:'bold',cellWidth:80}}
   });
-  // subnets if visible
   const subHTML=document.getElementById('sub-table').querySelector('table');
   if(subHTML){
     const rows=[...subHTML.querySelectorAll('tbody tr')].map(r=>[...r.querySelectorAll('td')].map(c=>c.textContent));
